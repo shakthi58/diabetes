@@ -10,7 +10,7 @@ model = joblib.load(model_path)
 
 # Streamlit UI
 st.title("Diabetes Prediction App")
-st.write("Enter patient details (excluding pregnancies) to predict diabetes risk.")
+st.write("Enter patient details to predict diabetes risk.")
 
 
 st.subheader("User Information")
