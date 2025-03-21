@@ -12,6 +12,11 @@ model = joblib.load(model_path)
 st.title("Diabetes Prediction App")
 st.write("Enter patient details (excluding pregnancies) to predict diabetes risk.")
 
+
+st.subheader("User Information")
+user_name = st.text_input("What is your name?", key="user_name")
+user_city = st.selectbox("Select your city:", [
+                         "Bangalore", "Chennai", "Mangalore", "Hyderabad", "Kochi", "Trivandrum"], key="user_city")
 # Preliminary questions
 st.subheader("Preliminary Questions")
 q1 = st.radio("1. Do you have increased thirst or frequent urination, especially at night?", [
@@ -26,7 +31,8 @@ q5 = st.radio("5. What does your diet and physical activity routine look like?",
               "Healthy diet and active", "Moderate diet and activity", "Unhealthy diet and sedentary"], key="q5")
 
 if st.button("Submit Answers"):
-    st.success("Thank you for answering the preliminary questions! You can now proceed with entering your health details below.")
+    st.success(
+        f"Thank you {user_name} for answering the preliminary questions! You can now proceed with entering your health details below.")
 
 # User input fields
 st.subheader("Patient Details")
