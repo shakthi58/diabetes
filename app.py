@@ -1,10 +1,16 @@
 import streamlit as st
 import joblib
 import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
 
 # Load the model
 model_path = "random_forest_diabetes_model.pkl"
 model = joblib.load(model_path)
+
+# Feature names
+feature_names = ["Glucose", "Blood Pressure", "Skin Thickness",
+                 "Insulin", "BMI", "Diabetes Pedigree Function", "Age"]
 
 # App title and description
 st.title("Diabetes Prediction App")
@@ -27,13 +33,6 @@ age = st.number_input("Age", min_value=0, max_value=120, value=30)
 if 'prediction' not in st.session_state:
     st.session_state.prediction = None
 
-if st.button("Predict"):
-    # Prepare input data
-    input_data = np.array(
-        [[glucose, blood_pressure, skin_thickness,
-            insulin, bmi, diabetes_pedigree, age]]
-    )
-    st.session_state.prediction = model.predict(input_data)[0]
 
 # Check prediction result
 if st.session_state.prediction == 1:
@@ -81,3 +80,49 @@ if st.session_state.prediction == 1:
 
 elif st.session_state.prediction == 0:
     st.success("The model predicts that the patient is not at risk of diabetes.")
+
+    # Precautionary measures for non-diabetic users
+    st.write("**Precautionary Measures to Maintain Good Health:**")
+    st.write("- Maintain a balanced diet rich in whole grains, vegetables, lean proteins, and healthy fats.")
+    st.write("- Engage in regular physical activity, such as walking, jogging, or any form of exercise you enjoy, for at least 30 minutes a day.")
+    st.write("- Stay hydrated by drinking plenty of water throughout the day.")
+    st.write("- Monitor your weight and aim to maintain a healthy BMI.")
+    st.write("- Schedule regular health check-ups, including blood sugar tests, to stay aware of any potential health issues early on.")
+    st.write("- Avoid excessive consumption of sugary drinks and processed foods.")
+    st.write("- Manage stress through relaxation techniques like meditation, yoga, or deep breathing exercises.")
+
+
+if st.button("Predict"):
+    # Prepare input data
+    input_data = np.array(
+        [[glucose, blood_pressure, skin_thickness,
+            insulin, bmi, diabetes_pedigree, age]]
+    )
+    st.session_state.prediction = model.predict(input_data)[0]
+
+    # Display feature importance graph
+    st.write("### Feature Importance in Diabetes Prediction")
+    feature_importances = model.feature_importances_
+    importance_df = pd.DataFrame(
+        {"Feature": feature_names, "Importance": feature_importances})
+    importance_df = importance_df.sort_values(by="Importance", ascending=False)
+
+    # Plotting the feature importance
+    fig, ax = plt.subplots()
+    ax.barh(importance_df["Feature"],
+            importance_df["Importance"], color="skyblue")
+    ax.set_xlabel("Importance")
+    ax.set_ylabel("Feature")
+    ax.set_title("Feature Importance in Diabetes Prediction")
+    plt.gca().invert_yaxis()
+    st.pyplot(fig)
+
+    # Explanation of feature importance
+    st.write("#### Understanding the Features:")
+    st.write("- **Glucose**: High glucose levels are a primary indicator of diabetes, as the condition directly affects the body's ability to regulate blood sugar.")
+    st.write("- **BMI (Body Mass Index)**: BMI is a measure of body fat based on height and weight. Higher BMI values are strongly associated with a higher risk of developing diabetes.")
+    st.write("- **Age**: As age increases, the risk of diabetes also rises due to reduced insulin sensitivity and lifestyle factors.")
+    st.write("- **Diabetes Pedigree Function**: This feature represents the genetic likelihood of diabetes based on family history. A higher value indicates a greater risk.")
+    st.write("- **Insulin**: Insulin levels provide insight into how the body is managing blood sugar, with abnormal levels being a concern.")
+    st.write("- **Blood Pressure**: High blood pressure is often linked to diabetes and other metabolic disorders.")
+    st.write("- **Skin Thickness**: This feature measures subcutaneous fat, which can be a marker for insulin resistance.")
