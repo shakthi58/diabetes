@@ -1,11 +1,10 @@
+import base64
 import streamlit as st
 import joblib
 import numpy as np
 import matplotlib.pyplot as plt
 
 # Load the trained Random Forest model
-# Ensure this file is in the same directory
-
 model_path = "random_forest_diabetes_model.pkl"
 model = joblib.load(model_path)
 
@@ -13,28 +12,40 @@ model = joblib.load(model_path)
 st.title("Diabetes Prediction App")
 st.write("Enter patient details (excluding pregnancies) to predict diabetes risk.")
 
-menu = st.sidebar.radio(
-    "Navigate", ["Preliminary Questions", "Patient Details"], key="menu")
-
 # Initialize session state for menu navigation
 if "menu" not in st.session_state:
     st.session_state.menu = "Preliminary Questions"
 
+menu = st.session_state.menu  # Use session state for navigation
 
-# Function to switch pages
+
+def get_base64(bin_file):
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
 
 
-def switch_to_details():
-    st.session_state.menu = "Patient Details"
-    st.experimental_rerun()
+def set_background(png_file):
+    bin_str = get_base64(png_file)
+    page_bg_img = '''
+    <style>
+    .stApp {
+    background-image: url("data:image/png;base64,%s");
+    background-size: cover;
+    }
+    </style>
+    ''' % bin_str
+    st.markdown(page_bg_img, unsafe_allow_html=True)
 
+
+set_background("background.jpeg")
 
 if menu == "Preliminary Questions":
     st.subheader("User Information")
     user_name = st.text_input("What is your name?", key="user_name")
     user_city = st.selectbox("Select your city:", [
         "Bangalore", "Chennai", "Mangalore", "Hyderabad", "Kochi", "Trivandrum"], key="user_city")
-# Preliminary questions
+
     st.subheader("Preliminary Questions")
     q1 = st.radio("1. Do you have increased thirst or frequent urination, especially at night?", [
                   "No", "Occasionally", "Yes"], key="q1")
@@ -49,15 +60,16 @@ if menu == "Preliminary Questions":
 
     if st.button("Submit Answers"):
         st.success(
-            f"Thank you {user_name} for answering the preliminary questions! You can now proceed with entering your health details below.")
+            f"Thank you {user_name} for answering the preliminary questions! You will now be redirected to the next step.")
 
-# User input fields
-
+        # Automatically switch to Patient Details
+        st.session_state.menu = "Patient Details"
+        st.rerun()  # Refresh UI to show the next section
 
 elif menu == "Patient Details":
     st.subheader("Patient Details")
-    glucose = st.number_input("Glucose Level", min_value=0,
-                              max_value=300, value=100)
+    glucose = st.number_input(
+        "Glucose Level", min_value=0, max_value=300, value=100)
     blood_pressure = st.number_input(
         "Blood Pressure", min_value=0, max_value=200, value=80)
     skin_thickness = st.number_input(
@@ -68,12 +80,11 @@ elif menu == "Patient Details":
         "Diabetes Pedigree Function", min_value=0.0, max_value=2.5, value=0.5)
     age = st.number_input("Age", min_value=0, max_value=120, value=30)
 
-# Prediction button
+    # Prediction button
     if st.button("Predict"):
         input_data = np.array(
             [[glucose, blood_pressure, skin_thickness, insulin, bmi, diabetes_pedigree, age]])
         prediction = model.predict(input_data)
-        # Probability of having diabetes
         probability = model.predict_proba(input_data)[0][1]
 
         if prediction[0] == 1:
@@ -83,7 +94,6 @@ elif menu == "Patient Details":
             st.success(
                 f"The model predicts that the patient is not at risk of diabetes. (Probability: {probability:.2%})")
 
-        # Calculate risk percentage based on probability
         risk_percentage = probability * 100
 
         # Health Badge
