@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 # Load the trained Random Forest model
 
 rf_model = joblib.load("random_forest_diabetes_model.pkl")
-svm_model = joblib.load("svm_model.pkl")
+svm_model = joblib.load("optimized_svm_model.pkl")
 nn_model = joblib.load("nn_model.pkl")
 
 # Streamlit UI
