@@ -5,8 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Load the trained Random Forest model
-model_path = "random_forest_diabetes_model.pkl"
-model = joblib.load(model_path)
+
+rf_model = joblib.load("random_forest_diabetes_model.pkl")
+svm_model = joblib.load("svm_model.pkl")
+nn_model = joblib.load("nn_model.pkl")
 
 # Streamlit UI
 st.title("Diabetes Prediction App")
@@ -84,25 +86,39 @@ elif menu == "Patient Details":
     if st.button("Predict"):
         input_data = np.array(
             [[glucose, blood_pressure, skin_thickness, insulin, bmi, diabetes_pedigree, age]])
-        prediction = model.predict(input_data)
-        probability = model.predict_proba(input_data)[0][1]
+        rf_prediction = rf_model.predict(input_data)
+        rf_probability = rf_model.predict_proba(input_data)[0][1]
 
-        if prediction[0] == 1:
+        svm_prediction = svm_model.predict(input_data)
+        svm_probability = svm_model.predict_proba(input_data)[0][1]
+
+        nn_prediction = nn_model.predict(input_data)
+        nn_probability = nn_model.predict_proba(input_data)[0][1]
+
+        if rf_prediction[0] == 1:
             st.error(
-                f"The model predicts that the patient is at risk of diabetes. (Probability: {probability:.2%})")
+                f"The Random Forest model predicts that the patient is at risk of diabetes. (Probability: {rf_probability:.2%})")
         else:
             st.success(
-                f"The model predicts that the patient is not at risk of diabetes. (Probability: {probability:.2%})")
+                f"The Random Forest model predicts that the patient is not at risk of diabetes. (Probability: {rf_probability:.2%})")
 
-        risk_percentage = probability * 100
-
-        # Health Badge
-        if risk_percentage < 10:
-            st.success("🏆 *Health Badge: Low Risk Champion!*")
-        elif risk_percentage < 50:
-            st.warning("🎖 *Health Badge: Moderate Risk Warrior!*")
+        if svm_prediction[0] == 1:
+            st.error(
+                f"The SVM model predicts that the patient is at risk of diabetes. (Probability: {svm_probability:.2%})")
         else:
-            st.error("⚠ *Health Badge: High Risk Fighter!*")
+            st.success(
+                f"The SVM model predicts that the patient is not at risk of diabetes. (Probability: {svm_probability:.2%})")
+
+        if nn_prediction[0] == 1:
+            st.error(
+                f"The Neural Network model predicts that the patient is at risk of diabetes. (Probability: {nn_probability:.2%})")
+        else:
+            st.success(
+                f"The The Neural Network model predicts that the patient is not at risk of diabetes. (Probability: {nn_probability:.2%})")
+
+        rf_percentage = rf_probability * 100
+        svm_percentage = svm_probability * 100
+        nn_percentage = nn_probability * 100
 
         # Checklist
         st.write("### Your Health Checklist:")
@@ -236,7 +252,7 @@ elif menu == "Patient Details":
             st.image("carbohydrates.jpg")
 
             st.subheader("Feature Importance in Prediction")
-            importances = model.feature_importances_
+            importances = rf_model.feature_importances_
             features = ["Glucose", "Blood Pressure", "Skin Thickness",
                         "Insulin", "BMI", "Diabetes Pedigree", "Age"]
 
